@@ -95,12 +95,16 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="この記事のゴール"><a href="#この記事のゴール" class="headerlink" title="この記事のゴール"></a>この記事のゴール</h1><p><strong>Dockerを使いこなせるようになる</strong></p>
-<ul>
-<li>Dockerの基本概念、image/network/volume を理解する</li>
-<li>OSS等を試すときにDocker使ってサクッと試すことができるようになる</li>
-<li>Dockerを使って開発環境を構築できるようになる</li>
-</ul>
+        <h1 id="この記事のゴール"><a href="#この記事のゴール" class="headerlink" title="この記事のゴール"></a>この記事のゴール</h1><p><strong>Dockerの基本概念、image/network/volume を理解する</strong></p>
+<p>ターゲットは以下のような方々です。<br><br>開発環境としてdocker使用してきたけど、、</p>
+<ol>
+<li><p>Dockerfileはネットから適当にコピペしてなんとかしてきた<br><code>docker build</code> -&gt; <code>docker run</code> はよくわからないおまじない</p>
+</li>
+<li><p>コンテナとローカルがどうやってファイル/データのやり取りをしているのかわからない<br>マウントって言葉はなんとなく聞いたことがある</p>
+</li>
+<li><p>コンテナ内外・コンテナ間のネットワークの疎通をどのように実現しているかよくわかってない<br>Dockerfile上にそれっぽいポートの記述とかは見たことある気がする</p>
+</li>
+</ol>
 <h1 id="Dockerの基本概念"><a href="#Dockerの基本概念" class="headerlink" title="Dockerの基本概念"></a>Dockerの基本概念</h1><h2 id="全体像"><a href="#全体像" class="headerlink" title="全体像"></a>全体像</h2><ul>
 <li>image<ul>
 <li>コンテナと呼ばれる実行環境のベースとなるもの</li>
@@ -137,7 +141,39 @@
 
 <figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker build -t hoge-tag-name .</span><br><span class="line"><span class="meta">#</span><span class="bash"> -t : タグ名の指定</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 最後の引数： ビルドコンテキストの指定</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> ビルドコンテキスト： イメージを作成するときにアクセスできるディレクトリ範囲を示す。</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> ビルド時にビルドコンテキスト配下のファイルはすべて一時的にDocker Daemonに転送されるので必要ないファイルは含めないようにする</span></span><br></pre></td></tr></table></figure>
 
-<p>dockerfileで使うことのできる主なコマンドは以下の通り<br>|     |    |<br>|—–|—–|<br>|FROM |どのイメージをもとにイメージを構築するか指定する<br>基本的にはファイルの先頭で宣言する|<br>|RUN  |shellコマンドを実行できる<br>ライブラリのインストール等を行うときに使う|<br>|COPY |ローカルPC上のファイルをコンテナにコピーして持っていくときに使う|<br>|ADD  |ローカルPC上のファイルをコピーして、もしくはネット上に存在するファイルをダウンロードをしてコンテナに持っていくときに使う<br>明示性の観点からローカル→コンテナへのファイル移管ではCOPYを使用して、必要な場合のみADDを使うのがベストプラクティス|<br>|CMD  |コンテナが起動したときにデフォルトで実行する処理を指定できる<br>ひとつのdockerfile内で一度しか宣言できない|<br><a href="https://docs.docker.com/engine/reference/builder/" target="_blank" rel="noopener">参考：公式リファレンス</a></p>
+<p>dockerfileで使うことのできる主なコマンドは以下の通り</p>
+<table>
+<thead>
+<tr>
+<th align="center">コマンド</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">FROM</td>
+<td>どのイメージをもとにイメージを構築するか指定する<br> 基本的にはファイルの先頭で宣言する</td>
+</tr>
+<tr>
+<td align="center">RUN</td>
+<td>shellコマンドを実行できる<br> ライブラリのインストール等を行うときに使う</td>
+</tr>
+<tr>
+<td align="center">COPY</td>
+<td>ローカルPC上のファイルをコンテナにコピーして持っていくときに使う</td>
+</tr>
+<tr>
+<td align="center">ADD</td>
+<td>ローカルPC上のファイルをコピーして、もしくはネット上に存在するファイルをダウンロードをしてコンテナに持っていくときに使う<br> 明示性の観点からローカル→コンテナへのファイル移管ではCOPYを使用して、必要な場合のみADDを使うのがベストプラクティス</td>
+</tr>
+<tr>
+<td align="center">CMD</td>
+<td>コンテナが起動したときにデフォルトで実行する処理を指定できる<br> ひとつのdockerfile内で一度しか宣言できない</td>
+</tr>
+<tr>
+<td align="center">others</td>
+<td><a href="https://docs.docker.com/engine/reference/builder/" target="_blank" rel="noopener">公式リファレンス</a>を参考のこと</td>
+</tr>
+</tbody></table>
 
       
     </div>
