@@ -7,16 +7,17 @@
   
   <title>最低限理解しておくべきDockerの概念 | Shibadog Digging</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="この記事のゴールDockerの基本概念、image&#x2F;network&#x2F;volume を理解する ターゲットは以下のような方々です。開発環境としてdocker使用してきたけど、、  Dockerfileはネットから適当にコピペしてなんとかしてきたdocker build -&gt; docker run はよくわからないおまじない  コンテナとローカルがどうやってファイル&#x2F;データのやり取りをしているの">
+  <meta name="description" content="この記事のゴールDockerの基本概念を理解する  Docker Image Docker内でのデータ管理 Docker Network  ターゲットは以下のような方々です。開発環境としてdocker使用してきたけど、、  Dockerfileはネットから適当にコピペしてなんとかしてきたdocker build -&gt; docker run はよくわからないおまじない  コンテナとローカルがど">
 <meta property="og:type" content="article">
 <meta property="og:title" content="最低限理解しておくべきDockerの概念">
 <meta property="og:url" content="https://shibadog39.github.io/posts/practice-docker/index.html">
 <meta property="og:site_name" content="Shibadog Digging">
-<meta property="og:description" content="この記事のゴールDockerの基本概念、image&#x2F;network&#x2F;volume を理解する ターゲットは以下のような方々です。開発環境としてdocker使用してきたけど、、  Dockerfileはネットから適当にコピペしてなんとかしてきたdocker build -&gt; docker run はよくわからないおまじない  コンテナとローカルがどうやってファイル&#x2F;データのやり取りをしているの">
+<meta property="og:description" content="この記事のゴールDockerの基本概念を理解する  Docker Image Docker内でのデータ管理 Docker Network  ターゲットは以下のような方々です。開発環境としてdocker使用してきたけど、、  Dockerfileはネットから適当にコピペしてなんとかしてきたdocker build -&gt; docker run はよくわからないおまじない  コンテナとローカルがど">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://shibadog39.github.io/posts/practice-docker/docker_layer.png">
+<meta property="og:image" content="https://shibadog39.github.io/posts/practice-docker/docker_storage.png">
 <meta property="article:published_time" content="2020-04-26T07:41:28.000Z">
-<meta property="article:modified_time" content="2020-04-29T12:19:01.347Z">
+<meta property="article:modified_time" content="2020-04-29T13:44:46.187Z">
 <meta property="article:author" content="shibadog39">
 <meta property="article:tag" content="ruby">
 <meta property="article:tag" content=" rails">
@@ -99,7 +100,12 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="この記事のゴール"><a href="#この記事のゴール" class="headerlink" title="この記事のゴール"></a>この記事のゴール</h1><p><strong>Dockerの基本概念、image/network/volume を理解する</strong></p>
+        <h1 id="この記事のゴール"><a href="#この記事のゴール" class="headerlink" title="この記事のゴール"></a>この記事のゴール</h1><p><strong>Dockerの基本概念を理解する</strong></p>
+<ul>
+<li>Docker Image</li>
+<li>Docker内でのデータ管理</li>
+<li>Docker Network</li>
+</ul>
 <p>ターゲットは以下のような方々です。<br><br>開発環境としてdocker使用してきたけど、、</p>
 <ol>
 <li><p>Dockerfileはネットから適当にコピペしてなんとかしてきた<br><code>docker build</code> -&gt; <code>docker run</code> はよくわからないおまじない</p>
@@ -109,16 +115,7 @@
 <li><p>コンテナ内外・コンテナ間のネットワークの疎通をどのように実現しているかよくわかってない<br><code>docker run -p</code> もしくはDockerfile上でポート宣言したようなしていないような、、、とおぼろげな記憶はある</p>
 </li>
 </ol>
-<h1 id="Dockerの基本概念"><a href="#Dockerの基本概念" class="headerlink" title="Dockerの基本概念"></a>Dockerの基本概念</h1><h2 id="全体像"><a href="#全体像" class="headerlink" title="全体像"></a>全体像</h2><ul>
-<li>image<ul>
-<li>コンテナと呼ばれる実行環境のベースとなるもの</li>
-</ul>
-</li>
-<li>network</li>
-<li>volume</li>
-</ul>
-<p>以降でそれぞれについて詳しく見ていく。</p>
-<h2 id="Docker-Image"><a href="#Docker-Image" class="headerlink" title="Docker Image"></a>Docker Image</h2><p>コンテナ起動に必要なファイルをまとめたファイルシステム。</p>
+<h1 id="Dockerの基本概念"><a href="#Dockerの基本概念" class="headerlink" title="Dockerの基本概念"></a>Dockerの基本概念</h1><h2 id="Docker-Image"><a href="#Docker-Image" class="headerlink" title="Docker Image"></a>Docker Image</h2><p>コンテナ起動に必要なファイルをまとめたファイルシステム。</p>
 <ul>
 <li>OSのライブラリ、アプリケーションの実行ファイルなどが含まれる<ul>
 <li>ex: webサーバー用のコンテナ→ nginxやapacheのイメージを使用</li>
@@ -135,10 +132,7 @@
 
 <h3 id="Docker-Imageの継承"><a href="#Docker-Imageの継承" class="headerlink" title="Docker Imageの継承"></a>Docker Imageの継承</h3><p>あるイメージをベースにして、別のイメージを作成する事が可能。<br>ベースとなるイメージが同一であるイメージが複数ある場合は、ベースイメージ部分のレイヤーについては同じものを使用する＝ストレージの節約につながる</p>
 <h3 id="Docker-Imageとコンテナ"><a href="#Docker-Imageとコンテナ" class="headerlink" title="Docker Imageとコンテナ"></a>Docker Imageとコンテナ</h3><p>イメージはあるコンテナのスナップショット。<br>コンテナを起動するというのは、既存のイメージをもとに新たなプロセスを開始するということ。</p>
-<blockquote>
-<p>Images are frozen immutable snapshots of live containers. Containers are running (or stopped) instances of some image.</p>
-<p><a href="https://stackoverflow.com/questions/21498832/in-docker-whats-the-difference-between-a-container-and-an-image" target="_blank" rel="noopener">In Docker, what’s the difference between a container and an image?</a></p>
-</blockquote>
+<p>参考：<a href="https://stackoverflow.com/questions/21498832/in-docker-whats-the-difference-between-a-container-and-an-image" target="_blank" rel="noopener">In Docker, what’s the difference between a container and an image?</a></p>
 <p>例えば下記のようにrubyのイメージを元にコンテナを起動すれば、ローカルにrubyをインストールせずにrubyの挙動を確認できる。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -it ruby:2.7.1-alpine irb</span><br></pre></td></tr></table></figure>
 <p><code>-it</code> はシェルスクリプトのようなインタラクティブな操作をコンテナ上で行いたいときにつけるオプションです。<br>他のrunコマンドのオプションについては<a href="http://docs.docker.jp/engine/reference/run.html" target="_blank" rel="noopener">こちら</a>を参照してください。</p>
@@ -181,6 +175,30 @@
 <td><a href="https://docs.docker.com/engine/reference/builder/" target="_blank" rel="noopener">公式リファレンス</a>を参考のこと</td>
 </tr>
 </tbody></table>
+<h2 id="Docker内でのデータ管理"><a href="#Docker内でのデータ管理" class="headerlink" title="Docker内でのデータ管理"></a>Docker内でのデータ管理</h2><p>デフォルトでは、コンテナ上で作成されたデータは読み書き可能なコンテナレイヤーに保存される。そうすると</p>
+<ul>
+<li>コンテナが削除されるとそれらのデータも削除される</li>
+<li>コンテナ間でデータのやりとりをすることは難しい</li>
+<li>読み書きのパフォーマンスがホスト上の操作よりも悪い(ホスト上と異なるファイルシステムが用いられるため)</li>
+</ul>
+<p>といったデメリットがある。</p>
+<p>Dockerでは、データを保持する方法として大きく２つの方法がある。</p>
+<ul>
+<li>volume<ul>
+<li>データ保持を目的にするならまずは検討するべきオプション</li>
+<li>ホスト上のDockerの保存領域に保持するのであるコンテナが削除されても消えない</li>
+<li>複数のコンテナから参照することが可能</li>
+</ul>
+</li>
+<li>bind mount<ul>
+<li>ホスト上にあるファイル/ディレクトリをコンテナ上にマウントし、ホスト・コンテナ双方から編集が可能な状態になる</li>
+<li>設定ファイルをホストとコンテナ間で共有したい場合、もしくは開発環境でソースコードをコンテナに持ち込みたいときに用いることが多い</li>
+</ul>
+</li>
+</ul>
+<img src="/posts/practice-docker/docker_storage.png" class="" title="Dockerのデータの保持">
+
+
 <h2 id="Docker-Network"><a href="#Docker-Network" class="headerlink" title="Docker Network"></a>Docker Network</h2><p>Network NamespaceというLinuxのリソース仮想化技術の一つを用いて、コンテナごとに独立したネットワークスタックを持つことを実現している。こうすることでホストに影響をあたえることもなく、コンテナそれぞれのネットワーク設定をカスタマイズすることが可能になる。</p>
 <p>より具体的な話を簡単に説明しようとしたけど前提となる基礎知識も多く、ハードルが高かった。。</p>
 <p>そこで、自分で説明することを諦め、非常に参考になるページを貼っておくことにします。3本立てでそこそこボリュームありますが丁寧に説明いただいているので参考にしてください。</p>
