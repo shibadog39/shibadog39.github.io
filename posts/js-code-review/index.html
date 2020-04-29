@@ -5,13 +5,17 @@
   
 
   
-  <title>Shibadog Digging</title>
+  <title>js実装でなるほどとなったコードレビュー指摘事項をさらす | Shibadog Digging</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Shibadog Digging">
-<meta property="og:url" content="https://shibadog39.github.io/index.html">
+  <meta name="description" content="はじめに普段はRailsを使ったサーバーサイドを主戦場としている自分ですが、フロントエンドの実装にも首を突っ込む機会があったので、今回はjs(厳密に言うとtypescriptですが)の実装で受けたコードレビューを紹介しようと思います。 基本的すぎではという事項も含まれているかと思いますが、恥はさらしてなんぼではないでしょうか。いってみよう。 マークアップとの依存を低くすることを意識しようparen">
+<meta property="og:type" content="article">
+<meta property="og:title" content="js実装でなるほどとなったコードレビュー指摘事項をさらす">
+<meta property="og:url" content="https://shibadog39.github.io/posts/js-code-review/index.html">
 <meta property="og:site_name" content="Shibadog Digging">
+<meta property="og:description" content="はじめに普段はRailsを使ったサーバーサイドを主戦場としている自分ですが、フロントエンドの実装にも首を突っ込む機会があったので、今回はjs(厳密に言うとtypescriptですが)の実装で受けたコードレビューを紹介しようと思います。 基本的すぎではという事項も含まれているかと思いますが、恥はさらしてなんぼではないでしょうか。いってみよう。 マークアップとの依存を低くすることを意識しようparen">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-04-29T13:50:10.000Z">
+<meta property="article:modified_time" content="2020-04-29T13:58:11.636Z">
 <meta property="article:author" content="shibadog39">
 <meta property="article:tag" content="ruby">
 <meta property="article:tag" content=" rails">
@@ -71,9 +75,7 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main">
-  
-    <article id="post-js-code-review" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-js-code-review" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/posts/js-code-review/" class="article-date">
   <time datetime="2020-04-29T13:50:10.000Z" itemprop="datePublished">2020-04-29</time>
@@ -86,8 +88,8 @@
       <header class="article-header">
         
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/posts/js-code-review/">js実装でなるほどとなったコードレビュー指摘事項をさらす</a>
+    <h1 class="article-title" itemprop="name">
+      js実装でなるほどとなったコードレビュー指摘事項をさらす
     </h1>
   
 
@@ -167,255 +169,19 @@
     </footer>
   </div>
   
-</article>
-
-
+    
+<nav id="article-nav">
   
-    <article id="post-practice-docker" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/posts/practice-docker/" class="article-date">
-  <time datetime="2020-04-26T07:41:28.000Z" itemprop="datePublished">2020-04-26</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/posts/practice-docker/">最低限理解しておくべきDockerの概念</a>
-    </h1>
+    <a href="/posts/practice-docker/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">最低限理解しておくべきDockerの概念</div>
+    </a>
   
+</nav>
 
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="この記事のゴール"><a href="#この記事のゴール" class="headerlink" title="この記事のゴール"></a>この記事のゴール</h1><p><strong>Dockerの基本概念を理解する</strong></p>
-<ul>
-<li>Docker Image</li>
-<li>Docker内でのデータ管理</li>
-<li>Docker Network</li>
-</ul>
-<p>ターゲットは以下のような方々です。<br><br>開発環境としてdocker使用してきたけど、、</p>
-<ol>
-<li><p>Dockerfileはネットから適当にコピペしてなんとかしてきた<br><code>docker build</code> -&gt; <code>docker run</code> はよくわからないおまじない</p>
-</li>
-<li><p>コンテナとローカルがどうやってファイル/データのやり取りをしているのかわからない<br>マウントって言葉はなんとなく聞いたことがある</p>
-</li>
-<li><p>コンテナ内外・コンテナ間のネットワークの疎通をどのように実現しているかよくわかってない<br><code>docker run -p</code> もしくはDockerfile上でポート宣言したようなしていないような、、、とおぼろげな記憶はある</p>
-</li>
-</ol>
-<h1 id="Dockerの基本概念"><a href="#Dockerの基本概念" class="headerlink" title="Dockerの基本概念"></a>Dockerの基本概念</h1><h2 id="Docker-Image"><a href="#Docker-Image" class="headerlink" title="Docker Image"></a>Docker Image</h2><p>コンテナ起動に必要なファイルをまとめたファイルシステム。</p>
-<ul>
-<li>OSのライブラリ、アプリケーションの実行ファイルなどが含まれる<ul>
-<li>ex: webサーバー用のコンテナ→ nginxやapacheのイメージを使用</li>
-<li>ex: rubyの実行環境用のコンテナ→ rubyが含まれるイメージ を使用する</li>
-</ul>
-</li>
-<li>AUFSなどの特殊なファイルシステムが使用されていて階層構造。</li>
-</ul>
-<h3 id="Docker-Imageのファイルシステム"><a href="#Docker-Imageのファイルシステム" class="headerlink" title="Docker Imageのファイルシステム"></a>Docker Imageのファイルシステム</h3><p>階層構造で管理されておりそれぞれの層をレイヤーと呼ぶ。一種のコマンドを実行するたびにレイヤーは追加される。これらのレイヤーは読み取り専用である。</p>
-<p>ex: nginxをイメージにインストールするコマンドで1レイヤーが作られ、設定ファイルをイメージ内にコピーするコマンドでレイヤーが追加される。</p>
-<p>イメージからコンテナを起動したときに、読み書きが可能な層：コンテナレイヤーが作成される。<br>つまり、<strong>コンテナの起動 ＝ Dockerイメージ上に読み書き可能なレイヤを追加し指定されたプロセスを隔離された状態で実行すること</strong></p>
-<img src="/posts/practice-docker/docker_layer.png" class="" title="レイヤーについて">
-
-
-<h3 id="Docker-Imageの継承"><a href="#Docker-Imageの継承" class="headerlink" title="Docker Imageの継承"></a>Docker Imageの継承</h3><p>あるイメージをベースにして、別のイメージを作成する事が可能。<br>ベースとなるイメージが同一であるイメージが複数ある場合は、ベースイメージ部分のレイヤーについては同じものを使用する＝ストレージの節約につながる</p>
-<h3 id="Docker-Imageとコンテナ"><a href="#Docker-Imageとコンテナ" class="headerlink" title="Docker Imageとコンテナ"></a>Docker Imageとコンテナ</h3><p>イメージはあるコンテナのスナップショット。<br>コンテナを起動するというのは、既存のイメージをもとに新たなプロセスを開始するということ。</p>
-<p>参考：<a href="https://stackoverflow.com/questions/21498832/in-docker-whats-the-difference-between-a-container-and-an-image" target="_blank" rel="noopener">In Docker, what’s the difference between a container and an image?</a></p>
-<p>例えば下記のようにrubyのイメージを元にコンテナを起動すれば、ローカルにrubyをインストールせずにrubyの挙動を確認できる。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -it ruby:2.7.1-alpine irb</span><br></pre></td></tr></table></figure>
-<p><code>-it</code> はシェルスクリプトのようなインタラクティブな操作をコンテナ上で行いたいときにつけるオプションです。<br>他のrunコマンドのオプションについては<a href="http://docs.docker.jp/engine/reference/run.html" target="_blank" rel="noopener">こちら</a>を参照してください。</p>
-<h3 id="Docker-Imageを自分で構築する"><a href="#Docker-Imageを自分で構築する" class="headerlink" title="Docker Imageを自分で構築する"></a>Docker Imageを自分で構築する</h3><p>dockerfileを準備し、buildすれば良い。</p>
-<figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># example dockerfile</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ベースとなるイメージを指定</span></span><br><span class="line"><span class="keyword">FROM</span> docker/whalesay:latest</span><br><span class="line"></span><br><span class="line"><span class="comment"># 必要なライブラリのインストール</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apt-get -y update &amp;&amp; apt-get install -y fortunes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 起動時に実行するコマンド</span></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> /usr/games/fortune | cowsay</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker build -t hoge-tag-name .</span><br><span class="line"><span class="meta">#</span><span class="bash"> -t : タグ名の指定</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 最後の引数： ビルドコンテキストの指定</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> ビルドコンテキスト： イメージを作成するときにアクセスできるディレクトリ範囲を示す。</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> ビルド時にビルドコンテキスト配下のファイルはすべて一時的にDocker Daemonに転送されるので必要ないファイルは含めないようにする</span></span><br></pre></td></tr></table></figure>
-
-<p>dockerfileで使うことのできる主なコマンドは以下の通り</p>
-<table>
-<thead>
-<tr>
-<th align="center">コマンド</th>
-<th>説明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="center">FROM</td>
-<td>どのイメージをもとにイメージを構築するか指定する<br> 基本的にはファイルの先頭で宣言する</td>
-</tr>
-<tr>
-<td align="center">RUN</td>
-<td>shellコマンドを実行できる<br> ライブラリのインストール等を行うときに使う</td>
-</tr>
-<tr>
-<td align="center">COPY</td>
-<td>ローカルPC上のファイルをコンテナにコピーして持っていくときに使う</td>
-</tr>
-<tr>
-<td align="center">ADD</td>
-<td>ローカルPC上のファイルをコピーして、もしくはネット上に存在するファイルをダウンロードをしてコンテナに持っていくときに使う<br> 明示性の観点からローカル→コンテナへのファイル移管ではCOPYを使用して、必要な場合のみADDを使うのがベストプラクティス</td>
-</tr>
-<tr>
-<td align="center">CMD</td>
-<td>コンテナが起動したときにデフォルトで実行する処理を指定できる<br> ひとつのdockerfile内で一度しか宣言できない</td>
-</tr>
-<tr>
-<td align="center">others</td>
-<td><a href="https://docs.docker.com/engine/reference/builder/" target="_blank" rel="noopener">公式リファレンス</a>を参考のこと</td>
-</tr>
-</tbody></table>
-<h2 id="Docker内でのデータ管理"><a href="#Docker内でのデータ管理" class="headerlink" title="Docker内でのデータ管理"></a>Docker内でのデータ管理</h2><p>デフォルトでは、コンテナ上で作成されたデータは読み書き可能なコンテナレイヤーに保存される。そうすると</p>
-<ul>
-<li>コンテナが削除されるとそれらのデータも削除される</li>
-<li>コンテナ間でデータのやりとりをすることは難しい</li>
-<li>読み書きのパフォーマンスがホスト上の操作よりも悪い(ホスト上と異なるファイルシステムが用いられるため)</li>
-</ul>
-<p>といったデメリットがある。</p>
-<p>Dockerでは、データを保持する方法として大きく２つの方法がある。</p>
-<ul>
-<li>volume<ul>
-<li>データ保持を目的にするならまずは検討するべきオプション</li>
-<li>ホスト上のDockerの保存領域に保持するのであるコンテナが削除されても消えない</li>
-<li>複数のコンテナから参照することが可能</li>
-</ul>
-</li>
-<li>bind mount<ul>
-<li>ホスト上にあるファイル/ディレクトリをコンテナ上にマウントし、ホスト・コンテナ双方から編集が可能な状態になる</li>
-<li>設定ファイルをホストとコンテナ間で共有したい場合、もしくは開発環境でソースコードをコンテナに持ち込みたいときに用いることが多い</li>
-</ul>
-</li>
-</ul>
-<img src="/posts/practice-docker/docker_storage.png" class="" title="Dockerのデータの保持">
-
-
-<h2 id="Docker-Network"><a href="#Docker-Network" class="headerlink" title="Docker Network"></a>Docker Network</h2><p>Network NamespaceというLinuxのリソース仮想化技術の一つを用いて、コンテナごとに独立したネットワークスタックを持つことを実現している。こうすることでホストに影響をあたえることもなく、コンテナそれぞれのネットワーク設定をカスタマイズすることが可能になる。</p>
-<p>より具体的な話を簡単に説明しようとしたけど前提となる基礎知識も多く、ハードルが高かった。。</p>
-<p>そこで、自分で説明することを諦め、非常に参考になるページを貼っておくことにします。3本立てでそこそこボリュームありますが丁寧に説明いただいているので参考にしてください。</p>
-<ul>
-<li><a href="http://sagantaf.hatenablog.com/entry/2019/12/08/015317" target="_blank" rel="noopener">Docker/Kubernetesを扱う上で必要なネットワークの基礎知識（その1）</a></li>
-<li><a href="http://sagantaf.hatenablog.com/entry/2019/12/14/000948" target="_blank" rel="noopener">Docker/Kubernetesを扱う上で必要なネットワークの基礎知識（その２）</a></li>
-<li><a href="http://sagantaf.hatenablog.com/entry/2019/12/18/234553" target="_blank" rel="noopener">Dockerのネットワークの仕組み</a></li>
-</ul>
-<p>また、そのあとに余力があったら<a href="https://success.docker.com/article/networking" target="_blank" rel="noopener">公式のボリューミーなリファレンス</a>を一読するのをおすすめします。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://shibadog39.github.io/posts/practice-docker/" data-id="ck9grrs2a0001oiwm26lc4s64" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
   
 </article>
-
-
-  
-    <article id="post-before-learn-docker" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/posts/before-learn-docker/" class="article-date">
-  <time datetime="2020-04-25T02:30:45.000Z" itemprop="datePublished">2020-04-25</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/posts/before-learn-docker/">Dockerを勉強する前に知っておくべき基礎知識</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="この記事のゴール"><a href="#この記事のゴール" class="headerlink" title="この記事のゴール"></a>この記事のゴール</h1><p><strong>Dockerが何を解決しようとした技術なのか説明できるようになる</strong></p>
-<ul>
-<li>Dockerの背景にあるコンテナ仮想化技術、ひいては仮想化技術についてざっくり理解する</li>
-<li>他の仮想化技術との対比のなかでコンテナ仮想化技術の特徴を理解する</li>
-<li>Dockerという技術が解決した課題を理解する</li>
-</ul>
-<h1 id="Dockerとは"><a href="#Dockerとは" class="headerlink" title="Dockerとは"></a>Dockerとは</h1><p>コンテナ型仮想化技術のひとつ</p>
-<h2 id="仮想化技術とは"><a href="#仮想化技術とは" class="headerlink" title="仮想化技術とは"></a>仮想化技術とは</h2><p>仮想化技術自体は1960年代から存在し、当初は高スペックなPCリソースのうち利用しきれていない部分をより効率的に活用することを目的に開発された。それから様々な変遷をたどってコンテナ型仮想化技術に行き着いた。</p>
-<p>仮想化を使用する理由については<a href="https://docs.oracle.com/cd/E90714_01/E64081/html/vmcon-intro-virt-reasons.html" target="_blank" rel="noopener">ORACLEの資料</a>が参考になる。</p>
-<p>また、一般的に仮想化することで実現されることを簡単に整理すると以下のようになる。</p>
-<ul>
-<li>可用性<ul>
-<li>ある物理サーバーがおちても他の物理サーバーへ切り替えることができる</li>
-<li>バックアップ/リストアが用意</li>
-</ul>
-</li>
-<li>拡張性<ul>
-<li>スペックの増強や仮想サーバー自体の追加も容易</li>
-</ul>
-</li>
-<li>運用保守性<ul>
-<li>ひとつの管理画面で複数の仮想サーバーを管理することが可能</li>
-</ul>
-</li>
-</ul>
-<h2 id="仮想化技術の種類"><a href="#仮想化技術の種類" class="headerlink" title="仮想化技術の種類"></a>仮想化技術の種類</h2><h3 id="ホスト型"><a href="#ホスト型" class="headerlink" title="ホスト型"></a>ホスト型</h3><p>仮想化をアプリケーションとして利用する方法</p>
-<ul>
-<li>ホストOSに仮想化ソフトウェアをインストールするだけで仮想化を実現できる</li>
-<li>仮想サーバーを動かすためにホストOS自体の処理も必要になるため処理速度が出にくい</li>
-<li>ex: Oracle VM VirtualBox, VMware Player</li>
-</ul>
-<img src="/posts/before-learn-docker/host_type.png" class="" title="ホスト型">
-
-
-<h3 id="ハイパーバイザー型"><a href="#ハイパーバイザー型" class="headerlink" title="ハイパーバイザー型"></a>ハイパーバイザー型</h3><p>ハードウェア上に直接インストールされた仮想化ソフトウェア(＝ハイパーバイザー)上で仮想環境を実現する方法</p>
-<ul>
-<li>ホストOSを介さずにハイパーバイザーがハードウェアを直接制御するため、リソースを効率よく利用できる</li>
-<li>ex: VMware ESXi, Windows Hyper-V</li>
-</ul>
-<img src="/posts/before-learn-docker/hypervisor_type.png" class="" title="ホスト型">
-
-
-<h3 id="コンテナ型-Dockerはこれ"><a href="#コンテナ型-Dockerはこれ" class="headerlink" title="コンテナ型(Dockerはこれ)"></a>コンテナ型(Dockerはこれ)</h3><p>ゲストOSは存在せず、ホストOS上に論理的に分離された区画(＝コンテナ)を準備し、それぞれをあたかもひとつの仮想マシンとして扱う方法</p>
-<ul>
-<li>ゲストOSがない分軽量で起動・停止が早い</li>
-<li>ゲストOSがない分、イメージ自体も軽量で可搬性が高い</li>
-<li>コンテナはホストOSのカーネルを使用して動作するのでホストOSと異なるOSのコンテナを動作させることができない</li>
-<li>ex: docker</li>
-</ul>
-<p>※mac/windowsはLinuxカーネルを搭載していないので、ホストOSがLinuxの場合と比較すると軽量ではない</p>
-<img src="/posts/before-learn-docker/container_type.png" class="" title="ホスト型">
-
-
-<h2 id="コンテナ型仮想化-Dockerが解決する課題"><a href="#コンテナ型仮想化-Dockerが解決する課題" class="headerlink" title="コンテナ型仮想化/Dockerが解決する課題"></a>コンテナ型仮想化/Dockerが解決する課題</h2><h3 id="仮想化技術のオーバーヘッド"><a href="#仮想化技術のオーバーヘッド" class="headerlink" title="仮想化技術のオーバーヘッド"></a>仮想化技術のオーバーヘッド</h3><p>ホスト型/ハイパーバイザー型の仮想化は完全に独立したゲストOSを稼働させていたため、オーバーヘッドが大きくなってしまうという問題があった。(ソフトウェアによってハードウェアの割当を代行するため)</p>
-<p>コンテナ型仮想化の場合、動作するのはあくまでホストOSのみのため、オーバーヘッドが少なく軽量で高速に動作する。</p>
-<h3 id="アプリケーションの土台部分に起因する不具合の発生"><a href="#アプリケーションの土台部分に起因する不具合の発生" class="headerlink" title="アプリケーションの土台部分に起因する不具合の発生"></a>アプリケーションの土台部分に起因する不具合の発生</h3><p>アプリケーションは、膨大な量のスタック(OSカーネルライブラリ/ミドルウェアパッケージ)の上で稼働している。さらに、それぞれが日々改善され更新されていくため、各環境下でそれぞれのバージョンを合わせて管理することは大変骨が折れる作業となる。</p>
-<p>Dockerでは、この基盤部分を持ち運び可能な形で(Dockerfileというファイルにコードとして)管理することが可能である。<br>開発環境・テスト環境・本番環境とでアプリケーションの基盤部分を不変にすることができるので、テスト環境だと問題がなかったのにデプロイしたら動かなかったみたいなことを防ぐことができる。</p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
-<li><a href="https://docs.oracle.com/cd/E90714_01/E64081/html/vmcon-intro.html" target="_blank" rel="noopener">ORACLE 仮想化の概要</a></li>
-<li><a href="https://www.nttcom.co.jp/comware_plus/img/201706_guest_interview.pdf" target="_blank" rel="noopener">仮想化の歴史と展望</a></li>
-<li><a href="https://blogs.itmedia.co.jp/itsolutionjuku/2015/06/post_90.html" target="_blank" rel="noopener">【図解】コレ１枚でわかる仮想化の歴史</a></li>
-<li><a href="https://www.nic.ad.jp/ja/materials/iw/2018/proceedings/h2/h2-takara-1.pdf" target="_blank" rel="noopener">Docker コンテナの<br>必要性と基礎</a></li>
-<li><a href="https://qiita.com/NagaokaKenichi/items/123c54f3863816481bd7#3-%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E5%9E%8B%E4%BB%AE%E6%83%B3%E5%8C%96" target="_blank" rel="noopener">サーバー仮想化技術の基礎</a></li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://shibadog39.github.io/posts/before-learn-docker/" data-id="ck9gqbas70000vkwmfo3rcxty" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-
 
 </section>
         
