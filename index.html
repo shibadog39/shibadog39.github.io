@@ -102,7 +102,7 @@
 </li>
 <li><p>コンテナとローカルがどうやってファイル/データのやり取りをしているのかわからない<br>マウントって言葉はなんとなく聞いたことがある</p>
 </li>
-<li><p>コンテナ内外・コンテナ間のネットワークの疎通をどのように実現しているかよくわかってない<br>Dockerfile上にそれっぽいポートの記述とかは見たことある気がする</p>
+<li><p>コンテナ内外・コンテナ間のネットワークの疎通をどのように実現しているかよくわかってない<br><code>docker run -p</code> もしくはDockerfile上でポート宣言したようなしていないような、、、とおぼろげな記憶はある</p>
 </li>
 </ol>
 <h1 id="Dockerの基本概念"><a href="#Dockerの基本概念" class="headerlink" title="Dockerの基本概念"></a>Dockerの基本概念</h1><h2 id="全体像"><a href="#全体像" class="headerlink" title="全体像"></a>全体像</h2><ul>
@@ -130,11 +130,14 @@
 
 
 <h3 id="Docker-Imageの継承"><a href="#Docker-Imageの継承" class="headerlink" title="Docker Imageの継承"></a>Docker Imageの継承</h3><p>あるイメージをベースにして、別のイメージを作成する事が可能。<br>ベースとなるイメージが同一であるイメージが複数ある場合は、ベースイメージ部分のレイヤーについては同じものを使用する＝ストレージの節約につながる</p>
-<h3 id="補足：Docker-Imageとコンテナの関係"><a href="#補足：Docker-Imageとコンテナの関係" class="headerlink" title="補足：Docker Imageとコンテナの関係"></a>補足：Docker Imageとコンテナの関係</h3><p>イメージはあるコンテナのスナップショット。<br>コンテナを起動するというのは、既存のイメージをもとに新たなプロセスを開始するということ。</p>
+<h3 id="Docker-Imageとコンテナ"><a href="#Docker-Imageとコンテナ" class="headerlink" title="Docker Imageとコンテナ"></a>Docker Imageとコンテナ</h3><p>イメージはあるコンテナのスナップショット。<br>コンテナを起動するというのは、既存のイメージをもとに新たなプロセスを開始するということ。</p>
 <blockquote>
 <p>Images are frozen immutable snapshots of live containers. Containers are running (or stopped) instances of some image.</p>
 <p><a href="https://stackoverflow.com/questions/21498832/in-docker-whats-the-difference-between-a-container-and-an-image" target="_blank" rel="noopener">In Docker, what’s the difference between a container and an image?</a></p>
 </blockquote>
+<p>例えば下記のようにrubyのイメージを元にコンテナを起動すれば、ローカルにrubyをインストールせずにrubyの挙動を確認できる。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -it ruby:2.7.1-alpine irb</span><br></pre></td></tr></table></figure>
+<p><code>-it</code> はシェルスクリプトのようなインタラクティブな操作をコンテナ上で行いたいときにつけるオプションです。<br>他のrunコマンドのオプションについては<a href="http://docs.docker.jp/engine/reference/run.html" target="_blank" rel="noopener">こちら</a>を参照してください。</p>
 <h3 id="Docker-Imageを自分で構築する"><a href="#Docker-Imageを自分で構築する" class="headerlink" title="Docker Imageを自分で構築する"></a>Docker Imageを自分で構築する</h3><p>dockerfileを準備し、buildすれば良い。</p>
 <figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># example dockerfile</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ベースとなるイメージを指定</span></span><br><span class="line"><span class="keyword">FROM</span> docker/whalesay:latest</span><br><span class="line"></span><br><span class="line"><span class="comment"># 必要なライブラリのインストール</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apt-get -y update &amp;&amp; apt-get install -y fortunes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 起動時に実行するコマンド</span></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> /usr/games/fortune | cowsay</span></span><br></pre></td></tr></table></figure>
 
@@ -174,6 +177,15 @@
 <td><a href="https://docs.docker.com/engine/reference/builder/" target="_blank" rel="noopener">公式リファレンス</a>を参考のこと</td>
 </tr>
 </tbody></table>
+<h2 id="Docker-Network"><a href="#Docker-Network" class="headerlink" title="Docker Network"></a>Docker Network</h2><p>Network NamespaceというLinuxのリソース仮想化技術の一つを用いて、コンテナごとに独立したネットワークスタックを持つことを実現している。こうすることでホストに影響をあたえることもなく、コンテナそれぞれのネットワーク設定をカスタマイズすることが可能になる。</p>
+<p>より具体的な話を簡単に説明しようとしたけど前提となる基礎知識も多く、ハードルが高かった。。</p>
+<p>そこで、自分で説明することを諦め、非常に参考になるページを貼っておくことにします。3本立てでそこそこボリュームありますが丁寧に説明いただいているので参考にしてください。</p>
+<ul>
+<li><a href="http://sagantaf.hatenablog.com/entry/2019/12/08/015317" target="_blank" rel="noopener">Docker/Kubernetesを扱う上で必要なネットワークの基礎知識（その1）</a></li>
+<li><a href="http://sagantaf.hatenablog.com/entry/2019/12/14/000948" target="_blank" rel="noopener">Docker/Kubernetesを扱う上で必要なネットワークの基礎知識（その２）</a></li>
+<li><a href="http://sagantaf.hatenablog.com/entry/2019/12/18/234553" target="_blank" rel="noopener">Dockerのネットワークの仕組み</a></li>
+</ul>
+<p>また、そのあとに余力があったら<a href="https://success.docker.com/article/networking" target="_blank" rel="noopener">公式のボリューミーなリファレンス</a>を一読するのをおすすめします。</p>
 
       
     </div>
