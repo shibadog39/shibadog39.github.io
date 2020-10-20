@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>Shibadog Digging</title>
   
-  <subtitle>My digging logs about web-technology/growth-hack</subtitle>
+  <subtitle>PdMになることを目論むWebエンジニアの備忘録</subtitle>
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://shibadog39.github.io/"/>
